@@ -22,11 +22,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 \section{Problem Statement}
 
-Debts and credits are crucial both for the expansion of businesses and for economic development. However, when the growth of debts outpaces the growth of income, debts become a time bomb triggering crises. There are two types of debts: domestic debts denominated in the domestic currency and external debts denominated in foreign currencies. The history of financial crisis tells us that countries with a high level of external debt are especially vulnerable to capital outflows and thus exchange rate fluctuations. As Ray Dalio describes in <Principles for Navigating Big Debt Crisis>, such event is called an inflationary depression.
+Debts and credits are crucial both for the expansion of businesses and for economic development. However, when the growth of debts outpaces the growth of income, debts become a time bomb triggering crises. There are two types of debts: domestic debts denominated in the domestic currency and external debts denominated in foreign currencies. The history of financial crises tells us that countries with a high level of external debt are especially vulnerable to capital outflows and thus exchange rate fluctuations. As Ray Dalio describes in <Principles for Navigating Big Debt Crisis>, such an event is called an inflationary depression.
 
 One classic example of a deflationary depression is the Argentina currency crises in the early 2000s. At that time, pegged exchange rates provided an implicit guarantee of exchange rate stability. It encouraged households, domestic banks, and non-financial firms to build up significant short-term debt denominated in US dollars while their revenues were in local currencies. When a sharp increase in capital outflow happened due to the domestic political riots, the local currency lost value and debtors could not repay their foreign debts. The defaults caused loss of credibility of Argentine debtors in the international capital market, which then caused the local currency value to further plunge.
 
-Our project focuses on studying the link between external debt and currency crisis in Emerging Market Economies (EME). EMEs typically face difficulties in issuing debts in local currency because their local financial markets are underdeveloped. Thus they are more likely to hold a significant portion of external debt in the total debt portfolio compared to developed economies. Specifically, we explore factors that strengthen or weaken the link between external debt and currency crisis in EMEs and use the patterns we find to predict the possibility of a currency crisis happening in future years. Our findings can serve as policy guidance for external debt managing for central bank policy makers in emerging markets.
+Our project focuses on studying the link between external debt and currency crisis in Emerging Market Economies (EME). EMEs typically face difficulties in issuing debts in local currency because their local financial markets are underdeveloped. Thus they are more likely to hold a significant portion of external debt in the total debt portfolio compared to developed economies. Specifically, we explore factors that strengthen or weaken the link between external debt and currency crisis in EMEs and use the patterns we find to predict the possibility of a currency crisis happening in future years. Our findings can serve as policy guidance for external debt management for central bank policymakers in emerging markets.
 
 \section{Data Source}
 
@@ -34,11 +34,11 @@ Data sources for this study are as follows: the World Bank Open Data, the Intern
 
 \section{How to Obtain Data}
 
-All the three data sources are publicly available. The World Bank and IMF APIs can be installed in R, and the Polity IV Project data can be conveniently downloaded as a csv package.  
+All three data sources are publicly available. The World Bank and IMF APIs can be installed in R, and the Polity IV Project data can be conveniently downloaded as a csv package.  
 
 \section{Potential Issues}
 
 First, since our project focuses on EMEs, it is anticipated that the dataset will contain many missing values and reporting bias. It is more difficult to obtain macroeconomic data on less developed countries because of bureaucratic mismanagement and officials' incentive to inflate their economic data. 
 
-Second, domestic political instability is an important trigger of bond selloff and capital outflow. However, we have not found an effective and direct measure of political stability. The Polity Score published by Center for Systemic Peace is the closest measure we found, but it only gauges the level of democracy, not the level of political stability. This introduces bias into our model, as countries like China are assigned low polity scores but in fact have stable political systems.
+Second, domestic political instability is an important trigger of the bond selloff and capital outflow. However, we have not found an effective and direct measure of political stability. The Polity Score published by the Center for Systemic Peace is the closest measure we found, but it only gauges the level of democracy, not the level of political stability. This introduces bias into our model, as countries like China are assigned low polity scores but in fact have stable political systems.
 
