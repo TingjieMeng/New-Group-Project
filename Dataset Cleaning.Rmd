@@ -1,0 +1,173 @@
+---
+title: "Dataset cleaning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Step 1. Get data from the World Bank API
+
+```{r}
+install.packages("WDI")
+```
+
+```{r}
+library('WDI')
+```
+
+```{r}
+WDIsearch('gdp')
+```
+
+```{r}
+WDIsearch('external.*debt')
+```
+
+```{r}
+WDIsearch('exchange.*rate')
+```
+
+```{r}
+Data_WDI = WDI(indicator=c('NEER', 'NY.GDP.PCAP.KD','FI.RES.TOTL.DT.ZS','DT.DOD.DECT.GN.ZS'), country='all', start=1990, end=2018)
+head(Data_WDI)
+```
+
+## Name of Variables in current dataframe
+'NEER'                 Nominal effective exchange rate
+'NY.GDP.PCAP.KD'       GDP per capita (constant 2010 US$)                                                                                     
+'FI.RES.TOTL.DT.ZS',   Total reserves (% of total external debt)
+'DT.DOD.DECT.GN.ZS',   External debt stocks (% of GNI)
+
+```{r}
+names(Data_WDI) <- c('iso2c', 'country', 'year', 'nominal.exchange.rate', 'GDP.per.capita', 'total.reserves.outof.total.external.debt', 'external.Debt/GNI')
+```
+
+##GET DATA ON LEVEL OF DEMOCRACY ----- data is downloaded from Center for Systemic Peace website.
+
+```{r}
+getwd()
+```
+
+```{r}
+Data_polity <- read.csv('/Users/liuminchen/Documents/Currency Crisis/DATASET/politydata.csv')
+```
+
+##MERGE WDI AND POLITYDATA SETS
+
+```{r}
+WDI_POLITY <- merge(Data_WDI,Data_polity, by=c("iso2c","year"))
+```
+
+```{r}
+head(WDI_POLITY)
+```
+
+##GET DATA FROM THE IMF ON US 3-MONTH TREASURY BILL YIELD
+
+```{r}
+install.packages("IMFData")
+```
+
+```{r}
+library(IMFData)
+```
+
+
+```{r}
+IFS.available.codes <- DataStructureMethod('IFS') # Get dimension code of IFS dataset
+names(IFS.available.codes) # Available dimension code
+IFS.available.codes[[1]] # Possible code in the first dimension
+CodeSearch(IFS.available.codes, "CL_INDICATOR_IFS", "Treasury")
+```
+
+```{r}
+queryfilter <- list(CL_FREA = "A", CL_AREA_IFS = "US", CL_INDICATOR_IFS = "FITB_3M_PA")
+```
+
+
+```{r}
+databaseID <- "IFS"
+startdate = "1980-01-01"
+enddate = "2018-12-31"
+checkquery = FALSE
+```
+
+```{r}
+USTREASURY <- CompactDataMethod(databaseID, queryfilter, startdate, enddate, 
+    checkquery, tidy = TRUE)
+head(USTREASURY)
+```
+
+
+## Merge the dataset
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+USTREASURY2 <- USTREASURY[,c(1,2)]
+head(USTREASURY2)
+```
+
+```{r}
+names(USTREASURY2) <- c('year', 'US.3m.treasury.yield')
+```
+
+```{r}
+WDI_POLITY_USTREASURY <- merge(WDI_POLITY, USTREASURY2, by="year")
+head(WDI_POLITY_USTREASURY)
+```
+
+```{r}
+WDI_POLITY_USTREASURY <- WDI_POLITY_USTREASURY[order( WDI_POLITY_USTREASURY[,2] ),]
+WDI_POLITY_USTREASURY2 <- WDI_POLITY_USTREASURY[,-c(8,9)]
+head(WDI_POLITY_USTREASURY2)
+```
+
+## GENERATE DEPENDENT VARIABLE (DUMMY)
+```{r}
+WDI_POLITY_USTREASURY2$currency.crisis = ifelse((WDI_POLITY_USTREASURY2$nominal.exchange.rate - lag(WDI_POLITY_USTREASURY2$nominal.exchange.rate))/lag(WDI_POLITY_USTREASURY2$nominal.exchange.rate) <= -0.15, 1, 0)
+```
+
+## GENERATE INDEPENDENT LAG VARIABLES
+```{r}
+WDI_POLITY_USTREASURY2$lag.GDP.per.capita = lag(WDI_POLITY_USTREASURY2$GDP.per.capita)
+WDI_POLITY_USTREASURY2$lag.total.reserves = lag(WDI_POLITY_USTREASURY2$total.reserves.outof.total.external.debt)
+```
+
+```{r}
+View(WDI_POLITY_USTREASURY2)
+```
+
+```{r}
+mean(WDI_POLITY_USTREASURY2$currency.crisis)
+```
+
+```{r}
+data_clean <- WDI_POLITY_USTREASURY2 %>% drop_na(currency.crisis)
+View(data_clean)
+```
+
+```{r}
+mean(data_clean$currency.crisis)
+```
+
+## CLEAN NULL VALUES IN THE COMPLETE MERGED DATASET
+```{r}
+isNA <- apply(is.na(data_clean), 1, any)
+data_clean <- data_clean[!isNA, ]
+```
+
+```{r}
+mean(data_clean$currency.crisis)
+```
+
+## SAVE THE COMPLETE MERGED DATASET.
+```{r}
+write.csv(data_clean,'data_clean_for_next_steps.csv')
+```
+
