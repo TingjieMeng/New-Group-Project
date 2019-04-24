@@ -166,6 +166,16 @@ data_clean <- data_clean[!isNA, ]
 mean(data_clean$currency.crisis)
 ```
 
+
+```{r}
+names(data_clean) <- c('year', 'isoc2', 'countryx', 'nominalexchangerate', 'gdppercapita', 'totalreservesoutoftotalexternald', 'externaldebtgni', 'polity2', 'us3mtreasuryyield', 'currencycrisis', 'laggdppercapita', 'lagtotalreserves')
+```
+
+```{r}
+View(data_clean)
+```
+
+
 ## SAVE THE COMPLETE MERGED DATASET.
 ```{r}
 write.csv(data_clean,'data_clean_for_next_steps.csv')
