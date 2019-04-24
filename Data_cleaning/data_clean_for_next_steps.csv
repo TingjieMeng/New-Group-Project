@@ -1,4 +1,4 @@
-"","year","iso2c","country.x","nominal.exchange.rate","GDP.per.capita","total.reserves.outof.total.external.debt","external.Debt/GNI","polity2","US.3m.treasury.yield","currency.crisis","lag.GDP.per.capita","lag.total.reserves"
+"","year","isoc2","countryx","nominalexchangerate","gdppercapita","totalreservesoutoftotalexternald","externaldebtgni","polity2","us3mtreasuryyield","currencycrisis","laggdppercapita","lagtotalreserves"
 "723",1994,"AM","Armenia",20.42983997204,956.470885506277,16.8470709106646,16.3034067472521,7,"4.34833333333333",1,886.032785925223,10.1453571748603
 "900",1995,"AM","Armenia",28.60133867256,1043.54314093392,29.9960089166889,25.2755457960255,3,"5.65333333333333",0,956.470885506277,16.8470709106646
 "1090",1996,"AM","Armenia",61.50256999476,1121.88162869349,32.3126679396378,31.7083070636766,-6,"5.13666666666667",0,1043.54314093392,29.9960089166889
