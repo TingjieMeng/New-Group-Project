@@ -1,0 +1,127 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+setwd("/Users/liuminchen/Desktop")
+```
+
+```{r}
+final_data <- read.csv('WDI_POLITY_USTREASURY_3.csv')
+```
+
+```{r}
+View(final_data)
+```
+
+```{r}
+install.packages("margins")
+```
+```{r}
+install.packages("ggeffects")
+```
+
+
+
+```{r}
+library(ggeffects)
+```
+
+```{r}
+library("lme4")
+```
+
+
+```{r}
+m <- glmer(currencycrisis2 ~ laggdppercapita + lagtotalreserves + externaldebtgni + polity2 + us3mtreasuryyield + (1|year) + (1|coun2), data = final_data, family = 'binomial')
+print(m, corr = FALSE)
+```
+
+```{r}
+summary(m)
+```
+
+```{r}
+plot(fitted(m), residuals(m), xlab = "Fitted Values", ylab = "Residuals")
+abline(h = 0, lty = 2)
+```
+
+
+```{r}
+library(MuMIn)
+```
+
+```{r}
+r.squaredGLMM(m)
+```
+
+```{r}
+margin_eff <- ggpredict(m, term = "externaldebtgni")
+margin_eff
+```
+
+```{r}
+plot(margin_eff)
+```
+
+```{r}
+margin_eff2 <- ggpredict(m, term = "lagtotalreserves")
+margin_eff2
+```
+
+```{r}
+plot(margin_eff2)
+```
+
+```{r}
+margin_eff3 <- ggpredict(m, term = "us3mtreasuryyield")
+margin_eff3
+```
+
+```{r}
+plot(margin_eff3)
+```
+
+```{r}
+margin_eff4 <- ggpredict(m, term = "laggdppercapita")
+margin_eff4
+```
+
+```{r}
+plot(margin_eff4)
+```
+
+
+```{r}
+margin_eff5 <- ggpredict(m, term = "polity2")
+margin_eff5
+```
+
+```{r}
+plot(margin_eff5)
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+m3 <- glmer(currencycrisis2 ~  externaldebtgni + polity2 + us3mtreasuryyield + (1|year) + (1|coun2), data = final_data, family = 'binomial')
+print(m3, corr = FALSE)
+summary(m3)
+```
+
+```{r}
+m4 <- glmer(currencycrisis2 ~  lagtotalreserves + externaldebtgni + (1|year) + (1|coun2), data = final_data, family = 'binomial')
+print(m4, corr = FALSE)
+summary(m4)
+```
+
+```{r}
+m5 <- glmer(currencycrisis2 ~  externaldebtgni + (1|year) + (1|coun2), data = final_data, family = 'binomial')
+print(m5, corr = FALSE)
+summary(m5)
+```
