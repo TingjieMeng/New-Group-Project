@@ -369,7 +369,7 @@ library("lme4")
 m <- glmer(currencycrisis ~ laggdppercapita + lagtotalreserves + externaldebtgni + polity2 + us3mtreasuryyield + (1|year) + (1|countryx), data = final_data, family = 'binomial')
 print(m, corr = FALSE)
 ```
-
+##To Tingjie: use a table to visualize it
 ```{r}
 summary(m)
 ```
@@ -386,6 +386,7 @@ margin_eff <- ggpredict(m, term = "externaldebtgni")
 margin_eff
 ```
 
+##To Tingjie: margin_eff 1,2,3,4,5 need to be printed
 ```{r}
 plot(margin_eff)
 ```
@@ -708,6 +709,7 @@ mod_list <-
 resamples(mod_list)
 ```
 
+## To Tingjie: print the following graph
 ```{r}
 dotplot(resamples(mod_list))
 ```
@@ -718,6 +720,7 @@ dotplot(resamples(mod_list))
 View(test4)
 ```
 
+## Tingjie: use a table to visualize the predictive capability
 ```{r}
 pred <- predict(mod2_rf,newdata = test4)
 confusionMatrix(table(pred,test4$currencycrisis))
@@ -726,6 +729,8 @@ confusionMatrix(table(pred,test4$currencycrisis))
 
 ## Task 8. For the Random Forest model, three most important variables are external debt to gni, lagged gdp per capita, and lagged total reserves.
 
+
+## To Tingjie: print the following graph
 ```{r}
 plot(varImp(mod2_rf))
 ```
