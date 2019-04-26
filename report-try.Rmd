@@ -15,6 +15,7 @@ documentclass: article
 knitr::opts_chunk$set(echo = FALSE, include=FALSE, warning=F,error = F,message = F)
 ```
 
+<<<<<<< HEAD
 ```{r}
 install.packages("margins")
 install.packages("ggeffects")
@@ -37,6 +38,8 @@ require(ggpubr)
 ```
 ```
 ```
+=======
+>>>>>>> b3548aabd2e971c7f25a7b9a292753aa3ff0c9d4
 
 
 \textbf{Members:}
@@ -77,9 +80,12 @@ Control variable: GDP per capita, level of democracy, US 3-month treasury yield,
 ## data visualization
 Data visualization is used for getting a general understanding of the relationships between independent variables and dependent variables. It is also used as case studies of individual countries that experience a classic pattern of currency crises. Here we selected nine typical EMEs from Asia, South America, Africa and Europe (China, Brazil, Romania, Russia, Sierra Lenone, Thailand, Turkey, Ukraine and South Africa) as case studies to  explore how external debt level,polity score, U.S. interest rate, and foreign reserves are associated with the incidence of currency crisis in EMEs.
 
+<<<<<<< HEAD
 ```{r}
 df <- read.csv('C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/data_clean_for_next_steps.csv')
 ```
+=======
+>>>>>>> b3548aabd2e971c7f25a7b9a292753aa3ff0c9d4
 
 ```{r}
 #creat df1 to select only China, Brazil, Romania, Russia, Sierra Lenone, Thailand, Turkey, Ukraine and South Africa
@@ -97,7 +103,11 @@ Figure 1 shows the external debt/GNI by countries in different years, with red d
 #graph 1
 #Is it the higher the external debt, the more often currency crisis happened?
 #-yes, for Thailand,Sierra Leoone.
+<<<<<<< HEAD
 figure1 <- ggplot(df1,aes(year,externaldebtgni))+
+=======
+graph1 <- ggplot(df1,aes(year,externaldebtgni))+
+>>>>>>> b3548aabd2e971c7f25a7b9a292753aa3ff0c9d4
   geom_line()+
   geom_point(aes(year,color=currencycrisis))+
   ylab("external debt/gni")+
@@ -112,6 +122,7 @@ figure1 <- ggplot(df1,aes(year,externaldebtgni))+
   theme(legend.position = "bottom",
         plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
+<<<<<<< HEAD
   ggsave("figure1.jpg")
 figure1
 ```
@@ -298,11 +309,24 @@ partialmerge
 ```
 
 
+=======
+  ggsave("graph1.jpg")
+graph1
+```
+
+Figure 2 presents how U.S. interest rate as an external factor associated with the currency crisis. U.S. interest rate
+
+## mixed-effect logit model
+The logit model in parameterization form is as follows. It is used for modelling the probability of a currency crisis happening given all variables.
+Pr(Currency Crisis = 1) = φ(β0 + β1(External debt to GNI)i,t + β2(Polity2)i,t + β3(US 3m yield)i + β4(lag GDP per capita)i,t + β5(lag reserves to external debt)i,t + yeari + countryt + εi,t) -------- ??to be shared with professor
+
+>>>>>>> b3548aabd2e971c7f25a7b9a292753aa3ff0c9d4
 ## machine learning techniques 
 Machine learning here is used for predicting the classification. We use several models including K nearest neighbours, CART, and Random Forest. After comparison, we choose the one model specification with the most accuracy. 
 
 
 # Results
+<<<<<<< HEAD
 ```{r}
 #create machine learning dataset
 ml_data <- df
@@ -570,6 +594,8 @@ rf2var <- plot(varImp(mod2_rf),main="Importance of control variables")
 rf2var
 ```
 
+=======
+>>>>>>> b3548aabd2e971c7f25a7b9a292753aa3ff0c9d4
 ## data visualization
 ......
 
