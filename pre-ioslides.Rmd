@@ -1,0 +1,91 @@
+---
+title: "Analyais on external debt and currency crisis in Emerging markets"
+author: "Liumin Chen & Tingjie Meng"
+date: "April.29 2019"
+output:
+  ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, cache=TRUE, include=FALSE, echo=FALSE}
+#install.packages("margins")
+#install.packages("ggeffects")
+#install.packages("caret")
+#install.packages('ggpubr')
+```
+
+
+```{r, cache=TRUE, include=FALSE, echo=FALSE}
+require(readr)
+require(tidyverse)
+require(ggplot2)
+require(dplyr)
+require(texreg)
+require(ggeffects)
+require(recipes)
+require(lme4)
+require(caret)
+require(ggpubr)
+```
+## Problem statement and Background
+
+- EMEs (emerging markets) are vulnerable: inflationary depression
+1) Countries with a high level of external debt are especially vulnerable to capital outflows and thus exchange rate fluctuations
+- the link between external debt and currency crisis in Emerging Market Economies (EME)
+1) EMEs are more likely to hold a significant portion of external debt compared to developed economies. 
+2) What factors strengthen or weaken the link between external debt and currency crisis in EMEs?
+3) How to predict the possibility of a currency crisis happening in future years?
+4) Policy guidance for external debt management for central bank policymakers in emerging markets
+
+## Approach (page 1)
+
+- Data description
+1) the World Bank Open Data
+2) the International Monetary Fund (IMF) Open Data
+3) the Polity IV Project conducted by the Center for Systemic Peace
+
+- Dependent variables (DV): Currency crisis happened in a country by years
+
+- Control variables: External debt/GNI, U.S. interest rate, foreign exchange reserves, polity score, GDP per capita
+
+- Data access: Public data 
+
+- Data limitation
+1) More difficult to obtain macroeconomic data on less developed countries because of bureaucratic mismanagement and officials' incentive to inflate their economic data 
+2) Polity score is not a perfect proxy for political stability
+
+## Methods 
+
+- Data visualizations - ggplot2
+1) explore the connection between DV and control variables
+2) explore the connections among control variables
+
+- Logit model  
+
+- Machine learning 
+
+## Result: data visualizations  (page 1)
+
+- connection between external debt and currency crisis
+(graph 1)
+- connection between polity score and gdp per capita
+(graph 2)
+- How U.S. interest rate influence EMEs' currency crisis?
+(graph 3)
+
+## Result: data visualization (page 2)
+- polity score and currency crisis by country: not significant
+(graph 4)
+- The lower the foreign reserves, the more currency crisis happened
+(graph 5)
+
+## Result: Logit model (page 3)
+
+## Result: Machine learning (page 4)
+
+## Lessons learned
+
+
