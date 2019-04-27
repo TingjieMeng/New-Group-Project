@@ -190,21 +190,22 @@ print(m, corr = FALSE)
 summary(m)
 ```
 
----
 
-```{r,include=TRUE,fig.align="center",fig.width=6,fig.height=9}
+```{r,include=FALSE,fig.align="center",fig.width=6,fig.height=9}
 table1 <- screenreg(m)
 table1
 ```
 
 
 
-
-
 ```{r,include=FALSE}
-# ! [] (/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/logit.jpg)
+#! [] (/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/logit.jpg)
 ```
 
+```{r, include=TRUE, cache=TRUE, fig.align="center",fig.width=5,fig.height=5}
+knitr::include_graphics("C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/logit.jpg")
+
+```
 
 ---
 
@@ -491,22 +492,15 @@ ml
 ```{r,include=FALSE}
 pred <- predict(mod2_rf,newdata = test4)
 confusionMatrix(table(pred,test4$currencycrisis))
-```
-|pred| no | yes|
-|----|---- ----
-|no  | 82 | 6 |
-|yes | 0  | 0 | 
 
-            Sensitivity : 1.0000         
-            Specificity : 0.0000        
-         Pos Pred Value : 0.9318         
-         Neg Pred Value :    NaN         
-             Prevalence : 0.9318         
-         Detection Rate : 0.9318         
-    Detection Prevalence : 1.0000         
-        Balanced Accuracy : 0.5000         
-                                          
-        'Positive' Class : no  
+```
+
+
+```{r, include=TRUE, cache=TRUE, fig.align="center",fig.width=7,fig.height=7}
+knitr::include_graphics("C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/confusion matrix.jpg")
+
+```
+
 
 
 ## Most important variables
