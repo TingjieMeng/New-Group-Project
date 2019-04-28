@@ -1,0 +1,539 @@
+---
+title: "Analyais on external debt and currency crisis in Emerging markets"
+author: "Liumin Chen & Tingjie Meng"
+date: "April.29 2019"
+output:
+  ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(texreg)
+library(ggeffects)
+library(recipes)
+library(lme4)
+library(caret)
+library(ggpubr)
+library(rattle)
+library(e1071)
+```
+
+```{r, cache=TRUE, include=FALSE, echo=FALSE}
+#install.packages("margins")
+#install.packages("ggeffects")
+#install.packages("caret")
+#install.packages('ggpubr')
+#install.packages("rattle") 
+#install.packages('e1071')
+```
+
+
+
+
+## Problem statement and Background 
+
+Frequent currency crisis in EMEs: Why so vulnerable?
+
+- a high level of external debt 
+- external shocks
+- politycial instability 
+- GDP level
+
+## Problem statement and Background 
+
+- What factors strengthen or weaken the link between external debt and currency crisis in EMEs?
+- How to predict the possibility of a currency crisis happening in the future?
+- Policy guidance for central bank policymakers in emerging markets?
+
+Testable hypothesis:
+
+- EMEs with high external debt are more prone to currency crisis risks
+
+## Approach 
+
+Variables:
+ 
+- Dependent variable: 
+possibility of currency crisis (a nominal depreciation of 15% within a year)
+- Independent variable: 
+externaldebt/GNI
+- Control variable: 
+GDP per capita, level of democracy, US 3-month treasury yield, foreign reserves/total external debt
+
+Data access:
+
+- the World Bank Open Data
+- the International Monetary Fund (IMF) Open Data
+- the Polity IV Project conducted by the Center for Systemic Peace
+
+
+## Methods 
+
+Data visualizations 
+
+- The connection between currency crisis and external debt 
+- The connection between currency crisis and control variables
+
+Logit model  
+
+- Model the probability of a currency crisis happening given all variables
+- $$Pr(Currency Crisis = 1) = φ(β0 + β1(External debt to GNI)i,t + β2(Polity2)i,t + β3(US 3m yield)i + β4(lag GDP per capita)i,t + β5(lag reserves to external debt)i,t + yeari + countryt + εi,t)$$
+
+
+Machine learning 
+
+- Predict the classification
+- Several models (K nearest neighbours, CART, and Random Forest)
+
+## Result:  data visualizations
+
+```{r,include=FALSE}
+df <- read.csv('data_clean_for_next_steps.csv')
+
+```
+
+```{r}
+df1 <- df %>%
+  filter(countryx=="China"|countryx=="Brazil"|countryx=="Romania"|countryx=="Russian Federation"|countryx=="Sierra Leone"|countryx=="Thailand"|countryx=="Turkey"|countryx=="South Africa"|countryx=='Ukraine')
+```
+
+```{r}
+df1$currencycrisis <- factor(df1$currencycrisis)
+```
+
+```{r,include=TRUE,fig.align='center',fig.height=5,fig.width=8}
+
+ggplot(df1,aes(year,externaldebtgni))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("external debt/gni")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)+
+  theme(legend.position = "bottom")+
+  labs(x="year",
+       y="external debt/GNI",
+       fill="",
+       title="Higher external debt, More currency crisis?") +
+  theme(legend.position = "bottom",
+        plot.title = element_text(hjust=.5),
+        plot.subtitle = element_text(hjust=.5))
+
+```
+
+
+---
+
+```{r}
+ df2 <- df%>%
+  filter(currencycrisis==1)
+```
+
+```{r}
+figure2 <- ggplot(df2,aes(x=year))+
+  geom_line(aes(year,us3mtreasuryyield*2.5),color="dark red")+
+  geom_bar(mapping = aes(x = year, y = currencycrisis), stat = "identity",fill="steel blue",alpha=0.4)+
+  scale_y_continuous(name="# of countries had currency crisis", sec.axis=sec_axis(~./2.5, name="US interest rate"))+
+  theme(axis.title.y.left=element_text(color="steel blue"),
+    axis.text.y.left=element_text(color="steel blue"),
+    axis.title.y.right=element_text(color="dark red"),
+    axis.text.y.right=element_text(color="dark red"))+
+  labs(title="U.S. interest rate and currency crisis in EMEs") +
+  theme(plot.title = element_text(hjust=.5),
+        plot.subtitle = element_text(hjust=.5))
+
+
+```
+
+```{r}
+figure3 <- ggplot(df1,aes(year,totalreservesoutoftotalexternald))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("total foreign reserves out of total external debt")+
+  scale_color_manual(values=c("black","red"))+
+  labs(title="Lower foreign reserves, more currenct crisis") +
+  theme(legend.position = 'bottom',
+        plot.title = element_text(hjust=.5),
+        plot.subtitle = element_text(hjust=.5))+
+  scale_x_continuous(limits=c(1990,2015), breaks=seq(1990,2015,10))+
+  facet_wrap(~countryx)
+  
+
+```
+
+```{r,include=TRUE,fig.align="center",fig.height=5,fig.width=8.5}
+
+p <- ggarrange(figure2,figure3,nrow=1,ncol=2)
+p
+
+
+```
+
+
+
+
+## Result:  Logit model
+
+a positive correlation between independent variable of interest and the dependent variable, statistically significant at the 0.1% level. 
+
+This supports our main hypothesis that countries who have borrowed excessively in foreign currency are more prone to currency crisis risks. 
+
+a negative correlation between the ratio of foreign reserves to a country’s total external debt in the previous year and the dependent variable
+
+also a negative correlation between GDP per capita in the previous year and the probability of a currency crisis happening
+
+```{r}
+final_data <- read.csv('data_clean_for_next_steps.csv')
+```
+
+```{r,include=FALSE}
+m <- glmer(currencycrisis ~ laggdppercapita + lagtotalreserves + externaldebtgni + polity2 + us3mtreasuryyield + (1|year) + (1|countryx), data = final_data, family = 'binomial')
+print(m, corr = FALSE)
+```
+
+```{r,include=FALSE}
+summary(m)
+```
+
+---
+
+```{r,include=TRUE,fig.align="center",fig.width=6,fig.height=9}
+table1 <- screenreg(m)
+table1
+```
+
+
+
+
+
+```{r,include=FALSE}
+# ! [] (/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/logit.jpg)
+```
+
+
+---
+
+
+```{r,include=FALSE}
+margin_eff <- ggpredict(m, term = "externaldebtgni")
+```
+
+```{r,include=FALSE}
+partial1 <- plot(margin_eff)+
+  xlab("external debt/ GNI")+
+  ggtitle("")
+```
+
+```{r,include=FALSE}
+margin_eff2 <- ggpredict(m, term = "lagtotalreserves")
+```
+
+```{r,include=FALSE}
+partial2 <- plot(margin_eff2)+
+  ggtitle("")+
+  xlab('lagged foreign reservces')
+
+```
+
+```{r,include=FALSE}
+margin_eff3 <- ggpredict(m, term = "us3mtreasuryyield")
+```
+
+```{r,include=FALSE}
+partial3 <- plot(margin_eff3)+
+  xlab("U.S. interest rate")+
+  ggtitle("")
+```
+
+```{r,include=FALSE}
+margin_eff4 <- ggpredict(m, term = "laggdppercapita")
+```
+
+```{r,include=FALSE}
+partial4 <- plot(margin_eff4)+
+  ggtitle("")+
+  xlab("lagged GDP per capita")
+```
+
+
+```{r,include=FALSE}
+margin_eff5 <- ggpredict(m, term = "polity2")
+```
+
+```{r,include=FALSE}
+partial5 <- plot(margin_eff5)+
+  ggtitle("")+
+  xlab("polity score")
+```
+
+```{r,include= FALSE}
+#partial dependency plot 
+partial <- ggarrange(partial1,partial2,partial3,partial4,partial5)
+
+```
+
+```{r, include=TRUE, fig.align="center", fig.width=8,fig.height=6}
+partialmerge<- annotate_figure(partial,
+                top = text_grob("Partial dependency plot \n predicted probabilities of currency crisis"))
+partialmerge
+```
+
+
+
+## Result:  Machine learning 
+
+```{r,include=FALSE}
+ml_data <- df
+```
+
+```{r,include=FALSE}
+test = ml_data %>% filter(year >= 2014)
+train = ml_data %>% filter(year < 2014)
+```
+
+```{r,include=FALSE}
+train2 <- 
+  train %>% mutate_if(is.factor, as.numeric)
+```
+
+```{r,include=FALSE}
+test2 <- 
+  test %>% mutate_if(is.factor, as.numeric)
+```
+
+
+```{r,include=FALSE}
+rcp <-
+  recipe(countryx~.,train2) %>%
+  step_range(countryx, polity2,us3mtreasuryyield,laggdppercapita, lagtotalreserves, externaldebtgni) %>%  # Normalize scale
+  prep()
+# Apply the recipe to the training and test data
+train3 <- bake(rcp,train2)
+test3 <- bake(rcp,test2)
+```
+
+
+```{r,include=FALSE}
+## keep variables we need for the ML model
+train4 <- train3[,c(4,8,9,10,11,12,13)]
+test4 <- test3[,c(4,8,9,10,11,12,13)]
+```
+
+
+```{r,include=FALSE}
+## Task 4. Cross-Validation
+set.seed(1988) # set a seed for replication purposes 
+folds <- createFolds(train4$currencycrisis, k = 5) # Partition the data into 10 equal folds
+sapply(folds,length)
+```
+
+```{r,include=FALSE}
+control_conditions <- 
+  trainControl(method='cv', # K-fold cross validation
+               summaryFunction = twoClassSummary, # Need this b/c it's a classification problem
+               classProbs = TRUE, # Need this b/c it's a classification problem
+               index = folds # The indices for our folds (so they are always the same)
+  )
+```
+
+
+```{r,include=FALSE}
+## Task 5. Models
+# 1. KNN
+train4$currencycrisis <- factor(train4$currencycrisis)
+test4$currencycrisis <- factor(test4$currencycrisis)
+```
+
+```{r,include=FALSE}
+levels(train4$currencycrisis) <- c("no", "yes")
+levels(test4$currencycrisis) <- c("no", "yes")
+```
+
+```{r,include=FALSE}
+#KNN model 1
+mod_knn <-
+  train(currencycrisis ~ ., # Equation (outcome and everything else)
+        data=train4, # Training data 
+        method = "knn", # K-Nearest Neighbors Algorithm
+        metric = "ROC", # area under the curve
+        trControl = control_conditions
+  )
+```
+
+```{r,include=FALSE}
+knn_tune = expand.grid(k = c(1,3,5,6,7,10))
+knn_tune
+```
+
+```{r,include=FALSE}
+#KNN model 2
+mod_knn2 <-
+  train(currencycrisis ~ ., 
+        data=train4,  
+        method = "knn", 
+        metric = "ROC", 
+        tuneGrid = knn_tune,
+        trControl = control_conditions
+)
+mod_knn2
+```
+
+
+```{r,include=FALSE}
+# Draw out the best model (the one with the best performance)
+mod_knn2$finalModel
+```
+```{r,include=FALSE}
+plot(mod_knn2)
+```
+
+
+```{r,include=FALSE}
+mod_cart <- 
+  train(currencycrisis ~ .,
+        data = train4,
+        method = "rpart",
+        metric = "ROC",
+        trControl = control_conditions
+  )
+mod_cart
+```
+
+```{r,include=FALSE}
+plot(mod_cart)
+```
+
+
+```{r,include=FALSE}
+fancyRpartPlot(mod_cart$finalModel)
+```
+
+```{r,include=FALSE}
+print(mod_cart$finalModel)
+```
+
+
+```{r,include=FALSE}
+tune_cart2 <- expand.grid(cp = c(0.0010281))
+mod_cart2 <- 
+  train(currencycrisis ~ .,
+        data = train4,
+        method = "rpart",
+        metric = "ROC",
+        tuneGrid = tune_cart2,
+        trControl = control_conditions
+  )
+mod_cart2
+```
+
+```{r,include=FALSE}
+fancyRpartPlot(mod_cart2$finalModel)
+```
+
+
+
+
+```{r,include=FALSE}
+mod_rf <-
+  train(currencycrisis ~ .,
+        data=train4, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        trControl = control_conditions
+)
+```
+
+```{r,include=FALSE}
+mod_rf
+```
+
+```{r,include=FALSE}
+rf_tune <- expand.grid(mtry = c(1,3,5,6), splitrule=c("gini", "extratrees"),min.node.size=1)
+```
+
+
+```{r,include=FALSE}
+mod2_rf <-
+  train(currencycrisis ~ .,
+        data=train4, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        tuneGrid = rf_tune,
+        trControl = control_conditions
+)
+```
+
+```{r,include=FALSE}
+mod2_rf
+```
+
+
+```{r,include=FALSE}
+mod_list <-
+  list(
+    knn1 = mod_knn,
+    knn2 = mod_knn2,
+    cart1 = mod_cart,
+    cart2 = mod_cart2,
+    rf = mod_rf, 
+    rf2 = mod2_rf
+  )
+
+# Resamples allows us to compare model output
+resamples(mod_list)
+```
+
+```{r,include=TRUE,fig.align="center"}
+ml <- dotplot(resamples(mod_list))
+ml
+```
+
+
+## Predictive performance for mod2_rf
+
+```{r,include=FALSE}
+pred <- predict(mod2_rf,newdata = test4)
+confusionMatrix(table(pred,test4$currencycrisis))
+```
+|pred| no | yes|
+|----|---- ----
+|no  | 82 | 6 |
+|yes | 0  | 0 | 
+
+            Sensitivity : 1.0000         
+            Specificity : 0.0000        
+         Pos Pred Value : 0.9318         
+         Neg Pred Value :    NaN         
+             Prevalence : 0.9318         
+         Detection Rate : 0.9318         
+    Detection Prevalence : 1.0000         
+        Balanced Accuracy : 0.5000         
+                                          
+        'Positive' Class : no  
+
+
+## Most important variables
+
+```{r,include=TRUE,fig.align="center"}
+rf2var <- plot(varImp(mod2_rf),main="Importance of control variables")
+rf2var
+```
+
+## Lessons learned
+
+- EMEs should control external debt level
+- Stock foreign reserves
+- Boost GDP
+- Monitor U.S. interest rate volatility
+
+## Next steps
+
+- Find a better proxy for political instability
+- More variables to include: economic structure & exchange rate regime
+- Expand the time rage
+
