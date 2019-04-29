@@ -91,7 +91,7 @@ df1$currencycrisis <- factor(df1$currencycrisis)
 ```
 
 Figure 1 shows the external debt/GNI by countries in different years, with red dots as when currency crisis happened. From this figure, we can see for Thailand and Sierra Leone, the incidence of currency crisis appears to be correlated with high external debt/GNI levels. But for other countries, such a correlation is not very obvious.
-```{r,include=TRUE,fig.height=5,fig.width=10}
+```{r,include=TRUE,fig.height=5,fig.width=7}
 #graph 1
 #Is it the higher the external debt, the more often currency crisis happened?
 #-yes, for Thailand,Sierra Leoone.
@@ -100,17 +100,19 @@ figure1 <- ggplot(df1,aes(year,externaldebtgni))+
   geom_line()+
   geom_point(aes(year,color=currencycrisis))+
   ylab("external debt/gni")+
-  scale_color_manual(values=c("black","red"))+
   facet_wrap(~countryx)+
   theme(legend.position = "bottom")+
   labs(x="year",
        y="external debt/GNI",
-       fill="",
-       title="Higher external debt, More currency crisis?",
-       subtitle="figure 1") +
+       title="figure 1: Higher xternal debt, More currency crisis?",
+       caption="Source: IMF, the World Bank") +
   theme(legend.position = "bottom",
         plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
+  scale_color_manual(name="currency crisis",
+                         breaks=c("0", "1"),
+                         labels=c("no currency crisis", 'currency crisis'),
+                       values=c("black","red"))+
   ggsave("figure1.jpg")
 figure1
 ```
@@ -124,7 +126,7 @@ Figure 2 presents how U.S. interest rate as an external factor associated with t
   filter(currencycrisis==1)
 ```
 
-```{r,include=TRUE,fig.align="center"}
+```{r,include=TRUE,fig.align="center",fig.height=5,fig.width=5}
 #The trends of US interest rate and # of countries undergoing currency crisis appear to move in the same direction approximately. 
 #US interest rate as an external shock has an impact on EMEs' currency crisis.
 #relationship found
@@ -136,7 +138,8 @@ figure2 <- ggplot(df2,aes(x=year))+
     axis.text.y.left=element_text(color="steel blue"),
     axis.title.y.right=element_text(color="dark red"),
     axis.text.y.right=element_text(color="dark red"))+
-  labs(title="How U.S. interest rate correlates with currency crisis in EMEs",subtitle="figure 2") +
+  labs(title="figure 2: U.S. interest rate and currency crisis in EMEs",
+       caption="Source: IMF, the World Bank") +
   theme(plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
   ggsave("figure2.jpg")
@@ -145,7 +148,7 @@ figure2
 
 Figure 3 visualizes the correlation between foreign reserves and currency crisis based on the nine countries we previously selected. The line graph shows the foreign reserves out of total external debt of each nine countries across years, with red dots indicating the year of currency crisis happened. For China, Thailand, Ukraine, the correlation between low foreign reserves out of external debt and incidence of currency crisis seems to be strong.
 
-```{r,inclue=TRUE, fig.align="center", fig.height=8,fig.width=15}
+```{r,inclue=TRUE, fig.align="center", fig.height=5,fig.width=7}
 #graph 5 is figure 3
 #The lower the foreign reserves, the more currency crisis happened.
 #strong relationship!
@@ -153,36 +156,42 @@ figure3 <- ggplot(df1,aes(year,totalreservesoutoftotalexternald))+
   geom_line()+
   geom_point(aes(year,color=currencycrisis))+
   ylab("total foreign reserves out of total external debt")+
-  scale_color_manual(values=c("black","red"))+
-  labs(title="Lower foreign reserves, more currenct crisis",subtitle="figure 3") +
+  labs(title="figure 3: Lower foreign reserves, more currenct crisis",caption="Source: IMF, the World Bank") +
   theme(legend.position = 'bottom',
     plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
   facet_wrap(~countryx)+
+  scale_color_manual(name="currency crisis",
+                         breaks=c("0", "1"),
+                         labels=c("no currency crisis", 'currency crisis'),
+                       values=c("black","red"))+
   ggsave("figure 3.jpg")
 figure3
 ```
 
 Figure 4 and figure 5 examines the factor of polity score. Figure 4 shows that polity score might not necessarily correlate with currency crisis, especailly for China, Brazil, South Africa, Turkey and Thailand. The correlation between olity score and GDP per capita (another control variable) also seems to be weak. One explanation is that the polity score might be not a perfect proxy for political stability.
 
-```{r,include=TRUE, fig.align="center", fig.height=8,fig.width=15}
+```{r,include=TRUE, fig.align="center", fig.height=5,fig.width=7}
 #figure 4
 #polity score and currency crisis by country
 figure4 <- ggplot(df1,aes(year,polity2))+
   geom_line()+
   geom_point(aes(year,color=currencycrisis))+
   ylab("polity score")+
-  scale_color_manual(values=c("black","red"))+
-  labs(title="Higher polity score, More currency crisis?",subtitle="figure 4") +
+  labs(title="figure 4: Higher polity score, More currency crisis?",caption="Source: IMF,the World Bank,\n the Center for Systemic Peace") +
   theme(legend.position = "bottom",
     plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
   facet_wrap(~countryx)+
+  scale_color_manual(name="currency crisis",
+                         breaks=c("0", "1"),
+                         labels=c("no currency crisis", 'currency crisis'),
+                       values=c("black","red"))+
   ggsave("figure4.jpg")
 figure4
 ```
 
-```{r,include=TRUE, fig.align="center",fig.height=8,fig.width=15}
+```{r,include=TRUE, fig.align="center",fig.height=5,fig.width=7.5}
 #figure 5
 figure5 <- ggplot(df1,aes(x=year))+
   geom_line(aes(year,laggdppercapita),color="steel blue")+
@@ -194,8 +203,8 @@ figure5 <- ggplot(df1,aes(x=year))+
     axis.text.y.right=element_text(color="dark red"))+
   facet_wrap(~countryx)+
   theme(legend.position = "bottom")+
-  labs(title="Higher Polity Score, Higher GDP per capita?",
-       subtitle="figure 5") +
+  labs(title="figure 5: Higher Polity Score, Higher GDP per capita?",
+       caption="Source: IMF,the World Bank,\n the Center for Systemic Peace") +
   theme(legend.position = "bottom",
         plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
@@ -286,14 +295,17 @@ partial5
 ```
 
 Figure 6 presents the partial dependency plots of all the independent variables.
-```{r,include= TRUE, fig.align="center", fig.width=14,fig.height=8}
+```{r,include= TRUE, fig.align="center", fig.width=13,fig.height=8}
 #partial dependency plot 
 partial <- ggarrange(partial1,partial2,partial3,partial4,partial5)
 partialmerge <- annotate_figure(partial,
-                top = text_grob("Partial dependency plot \n figure 6", color = "dark grey", face = "bold", size = 14))+
+                top = text_grob("figure 6: Partial dependency plot",size = 14),
+               bottom = text_grob("Source: IMF,the World Bank,the Center for Systemic Peace", size = 10))+
   ggsave("partialmerge.jpg")
 partialmerge
 ```
+
+
 
 
 ## Machine learning
@@ -504,7 +516,7 @@ mod_list <-
 resamples(mod_list)
 ```
 
-```{r,include=TRUE,fig.align="center"}
+```{r,include=TRUE,fig.align="center",fig.height=5,fig.width=8}
 ml <- dotplot(resamples(mod_list))
 ml
 ```
@@ -514,8 +526,33 @@ ml
 pred <- predict(mod2_rf,newdata = test4)
 confusionMatrix(table(pred,test4$currencycrisis))
 ```
+Confusion Matrix and Statistics
 
-```{r,include=TRUE,fig.align="center"}
+     
+pred  no yes
+  no  82   6
+  yes  0   0
+                                          
+               Accuracy : 0.9318          
+                 95% CI : (0.8575, 0.9746)
+    No Information Rate : 0.9318          
+    P-Value [Acc > NIR] : 0.60637         
+                                          
+                  Kappa : 0               
+                                          
+ Mcnemar's Test P-Value : 0.04123         
+                                          
+            Sensitivity : 1.0000          
+            Specificity : 0.0000          
+         Pos Pred Value : 0.9318          
+         Neg Pred Value :    NaN          
+             Prevalence : 0.9318          
+         Detection Rate : 0.9318          
+   Detection Prevalence : 1.0000          
+      Balanced Accuracy : 0.5000          
+                                          
+       'Positive' Class : no  
+```{r,include=TRUE,fig.align="center",fig.height=5,fig.width=8}
 rf2var <- plot(varImp(mod2_rf),main="Importance of control variables")
 rf2var
 ```

@@ -3,7 +3,7 @@ title: "Analyais on external debt and currency crisis in Emerging markets"
 author: "Liumin Chen & Tingjie Meng"
 date: "April.29 2019"
 output:
-  ioslides_presentation
+  beamer_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +32,6 @@ library(e1071)
 ```
 
 
-#Problem statement and Background 
 
 ## Problem statement and Background 
 
@@ -53,7 +52,7 @@ Testable hypothesis:
 
 - EMEs with high external debt are more prone to currency crisis risks
 
-#Approach
+
 
 ## Approach 
 
@@ -72,7 +71,7 @@ Data access:
 - the International Monetary Fund (IMF) Open Data
 - the Polity IV Project conducted by the Center for Systemic Peace
 
-#Methods
+
 
 ## Methods 
 
@@ -92,12 +91,12 @@ Machine learning
 - Predict the classification
 - Several models (K nearest neighbours, CART, and Random Forest)
 
-#Result
+
 
 ## Result:  data visualizations
 
 ```{r,include=FALSE}
-df <- read.csv('data_clean_for_next_steps.csv')
+df <- read.csv('C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/data_clean_for_next_steps.csv')
 
 ```
 
@@ -528,7 +527,7 @@ rf2var <- plot(varImp(mod2_rf),main="Importance of control variables")
 rf2var
 ```
 
-#Conclusion
+
 
 ## Lessons learned
 
