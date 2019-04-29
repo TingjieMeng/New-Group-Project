@@ -1,0 +1,730 @@
+---
+title: "Final Work"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+PART I. GET THE DATASET
+##Step 1. Get data from the World Bank API
+
+```{r}
+library('WDI')
+```
+
+```{r}
+WDIsearch('gdp')
+```
+
+```{r}
+WDIsearch('external.*debt')
+```
+
+```{r}
+WDIsearch('exchange.*rate')
+```
+
+```{r}
+Data_WDI = WDI(indicator=c('NEER', 'NY.GDP.PCAP.KD','FI.RES.TOTL.DT.ZS','DT.DOD.DECT.GN.ZS'), country='all', start=1990, end=2018)
+head(Data_WDI)
+```
+
+## Name of Variables in current dataframe
+'NEER'                 Nominal effective exchange rate
+'NY.GDP.PCAP.KD'       GDP per capita (constant 2010 US$)                                                                                     
+'FI.RES.TOTL.DT.ZS',   Total reserves (% of total external debt)
+'DT.DOD.DECT.GN.ZS',   External debt stocks (% of GNI)
+
+```{r}
+names(Data_WDI) <- c('iso2c', 'country', 'year', 'nominal.exchange.rate', 'GDP.per.capita', 'total.reserves.outof.total.external.debt', 'external.Debt/GNI')
+```
+
+##GET DATA ON LEVEL OF DEMOCRACY ----- data is downloaded from Center for Systemic Peace website.
+
+```{r}
+getwd()
+```
+
+```{r}
+Data_polity <- read.csv('/Users/liuminchen/Documents/Currency Crisis/DATASET/politydata.csv')
+```
+
+##MERGE WDI AND POLITYDATA SETS
+
+```{r}
+WDI_POLITY <- merge(Data_WDI,Data_polity, by=c("iso2c","year"))
+```
+
+```{r}
+head(WDI_POLITY)
+```
+
+##GET DATA FROM THE IMF ON US 3-MONTH TREASURY BILL YIELD
+
+```{r}
+library(IMFData)
+```
+
+
+```{r}
+IFS.available.codes <- DataStructureMethod('IFS') # Get dimension code of IFS dataset
+names(IFS.available.codes) # Available dimension code
+IFS.available.codes[[1]] # Possible code in the first dimension
+CodeSearch(IFS.available.codes, "CL_INDICATOR_IFS", "Treasury")
+```
+
+```{r}
+queryfilter <- list(CL_FREA = "A", CL_AREA_IFS = "US", CL_INDICATOR_IFS = "FITB_3M_PA")
+```
+
+
+```{r}
+databaseID <- "IFS"
+startdate = "1980-01-01"
+enddate = "2018-12-31"
+checkquery = FALSE
+```
+
+```{r}
+USTREASURY <- CompactDataMethod(databaseID, queryfilter, startdate, enddate, 
+    checkquery, tidy = TRUE)
+head(USTREASURY)
+```
+
+
+## Merge the dataset
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+USTREASURY2 <- USTREASURY[,c(1,2)]
+head(USTREASURY2)
+```
+
+```{r}
+names(USTREASURY2) <- c('year', 'US.3m.treasury.yield')
+```
+
+```{r}
+WDI_POLITY_USTREASURY <- merge(WDI_POLITY, USTREASURY2, by="year")
+head(WDI_POLITY_USTREASURY)
+```
+
+```{r}
+WDI_POLITY_USTREASURY <- WDI_POLITY_USTREASURY[order( WDI_POLITY_USTREASURY[,2] ),]
+WDI_POLITY_USTREASURY2 <- WDI_POLITY_USTREASURY[,-c(8,9)]
+head(WDI_POLITY_USTREASURY2)
+```
+
+## GENERATE DEPENDENT VARIABLE (DUMMY)
+```{r}
+WDI_POLITY_USTREASURY2$currency.crisis = ifelse((WDI_POLITY_USTREASURY2$nominal.exchange.rate - lag(WDI_POLITY_USTREASURY2$nominal.exchange.rate))/lag(WDI_POLITY_USTREASURY2$nominal.exchange.rate) <= -0.15, 1, 0)
+```
+
+## GENERATE INDEPENDENT LAG VARIABLES
+```{r}
+WDI_POLITY_USTREASURY2$lag.GDP.per.capita = lag(WDI_POLITY_USTREASURY2$GDP.per.capita)
+WDI_POLITY_USTREASURY2$lag.total.reserves = lag(WDI_POLITY_USTREASURY2$total.reserves.outof.total.external.debt)
+```
+
+
+```{r}
+mean(WDI_POLITY_USTREASURY2$currency.crisis)
+```
+
+```{r}
+data_clean <- WDI_POLITY_USTREASURY2 %>% drop_na(currency.crisis)
+View(data_clean)
+```
+
+```{r}
+mean(data_clean$currency.crisis)
+```
+
+## CLEAN NULL VALUES IN THE COMPLETE MERGED DATASET
+```{r}
+isNA <- apply(is.na(data_clean), 1, any)
+data_clean <- data_clean[!isNA, ]
+```
+
+```{r}
+mean(data_clean$currency.crisis)
+```
+
+
+```{r}
+names(data_clean) <- c('year', 'isoc2', 'countryx', 'nominalexchangerate', 'gdppercapita', 'totalreservesoutoftotalexternald', 'externaldebtgni', 'polity2', 'us3mtreasuryyield', 'currencycrisis', 'laggdppercapita', 'lagtotalreserves')
+```
+
+```{r}
+View(data_clean)
+```
+
+
+## SAVE THE COMPLETE MERGED DATASET.
+```{r}
+write.csv(data_clean,'data_clean_for_next_steps.csv')
+```
+
+PART II. DATA VISUALIZATION
+###Data visualization 
+Display the connections between Dependent variable (currency crisis) and control variables, or the connection among control variables.
+
+```{r}
+require(skimr)
+```
+
+```{r}
+require(readr)
+require(tidyverse)
+require(ggplot2)
+require(dplyr)
+```
+
+
+```{r}
+df <- read.csv('C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/data_clean_for_next_steps.csv')
+```
+
+```{r}
+head(df)
+
+```
+
+
+summary of statistics:
+describe the variables
+```{r}
+skimr::skim(df)
+```
+
+
+#creat df1 to select only China, Argentina, Brazil, Romania, Russia Federation, Sierra Leone, Thailand, Turkey and South Africa
+df1 is used to create graph1
+```{r}
+df1 <- df%>%
+  filter(countryx=="China"|countryx=="Brazil"|countryx=="Romania"|countryx=="Russian Federation"|countryx=="Sierra Leone"|countryx=="Thailand"|countryx=="Turkey"|countryx=="South Africa"|countryx=="Nigeria"|countryx=="Zambia"|countryx=='Ukraine')
+```
+
+```{r}
+df1$currencycrisis <- factor(df1$currencycrisis)
+```
+
+display the external debt/gni by 11 countries 
+```{r}
+ggplot(df1,aes(year,externaldebtgni))+
+  geom_line()+
+  ylab("external debt/gni")+
+  facet_wrap(~countryx)
+```
+#graph 1
+Is it the higher the external debt, the more often currency crisis happened?
+-yes, for Nigeria,Zambia,Thailand,Sierra Leoone.
+```{r,fig.height=8,fig.width=15}
+p <- ggplot(df1,aes(year,externaldebtgni))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("external debt/gni")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)
+  
+p
+                
+```
+#graph 2
+multicollinearity:
+see the relationship between control variable: polity score and gdp per capita
+display polity scores by countries:
+```{r}
+q1 <- ggplot(df1,aes(year,polity2))+
+  geom_line()+
+  ylab("polity score")+
+  facet_wrap(~countryx)
+q1
+```
+display GDP per capita by countries
+```{r}
+q2 <- ggplot(df1,aes(year,laggdppercapita,color="red"))+
+  geom_line()+
+  facet_wrap(~countryx)
+q2
+```
+
+multicolinear?
+No. multicolinearity doesn't seem to exist.
+it make sense: Nigeria, Romania -> The more "democratic", the higher lagged gdp per capita
+not make sense: China, Brazil,Russia, Ukraine, Sierra Leone, South Africa, Thailand, Turkey
+1) The polity score might not a strong factor reflecting political stability
+2) The polity score might not be strongly asscoiated with some countries' currency crisis.
+```{r,fig.height=8,fig.width=15}
+ggplot(df1,aes(x=year))+
+  geom_line(aes(year,laggdppercapita),color="steel blue")+
+  geom_line(aes(year,(polity2+10)*500),color="dark red")+
+  scale_y_continuous(name="lagged gdp per capita", sec.axis=sec_axis(~./500-10, name="polity score"))+
+  theme(axis.title.y.left=element_text(color="steel blue"),
+    axis.text.y.left=element_text(color="steel blue"),
+    axis.title.y.right=element_text(color="dark red"),
+    axis.text.y.right=element_text(color="dark red"))+
+  facet_wrap(~countryx)
+```
+#graph 3
+external shock: How U.S. interest rate influence EMEs' currency crisis?
+
+```{r}
+ df2 <- df%>%
+  filter(currencycrisis==1)
+```
+Count the number of currency crisis of all selected countries by years
+```{r}
+ggplot(df2,aes(x=year))+
+geom_bar(mapping = aes(x = year, y = currencycrisis), stat = "identity") 
+```
+Display the U.S. interest rate by years
+```{r}
+ggplot(df2,aes(x=year))+
+  geom_line(aes(year,us3mtreasuryyield))+
+  ylab("US Interest Rate")
+```
+The trends of US interest rate and # of countries undergoing currency crisis appear to move in the same direction approximately. 
+US interest rate as an external shock has an impact on EMEs' currency crisis.
+#relationship found
+```{r}
+ggplot(df2,aes(x=year))+
+  geom_line(aes(year,us3mtreasuryyield*2.5),color="dark red")+
+  geom_bar(mapping = aes(x = year, y = currencycrisis), stat = "identity",fill="steel blue",alpha=0.4)+
+  scale_y_continuous(name="# of countries with currency crisis", sec.axis=sec_axis(~./2.5, name="US interest rate"))+
+  theme(axis.title.y.left=element_text(color="steel blue"),
+    axis.text.y.left=element_text(color="steel blue"),
+    axis.title.y.right=element_text(color="dark red"),
+    axis.text.y.right=element_text(color="dark red"))
+```
+#graph 4
+polity score and currency crisis by country: no direct relationship found
+```{r,fig.height=8,fig.width=15}
+ ggplot(df1,aes(year,polity2))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("polity score")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)
+
+```
+#graph 5
+The lower the foreign reserves, the more currency crisis happened.
+strong relationship!
+```{r,fig.height=8,fig.width=15}
+ ggplot(df1,aes(year,totalreservesoutoftotalexternald))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("total foreign reserves out of total external debt")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)
+```
+
+
+PART III. LOGIT REGRESSION
+
+```{r}
+final_data <- read.csv('data_clean_for_next_steps.csv')
+```
+
+```{r}
+View(final_data)
+```
+
+```{r}
+install.packages("margins")
+install.packages("ggeffects")
+```
+
+
+
+```{r}
+library(ggeffects)
+```
+
+```{r}
+library("lme4")
+```
+
+
+```{r}
+m <- glmer(currencycrisis ~ laggdppercapita + lagtotalreserves + externaldebtgni + polity2 + us3mtreasuryyield + (1|year) + (1|countryx), data = final_data, family = 'binomial')
+print(m, corr = FALSE)
+```
+##To Tingjie: use a table to visualize it
+```{r}
+summary(m)
+```
+
+```{r}
+plot(fitted(m), residuals(m), xlab = "Fitted Values", ylab = "Residuals")
+abline(h = 0, lty = 2)
+```
+
+
+
+```{r}
+margin_eff <- ggpredict(m, term = "externaldebtgni")
+margin_eff
+```
+
+##To Tingjie: margin_eff 1,2,3,4,5 need to be printed
+```{r}
+plot(margin_eff)
+```
+
+```{r}
+margin_eff2 <- ggpredict(m, term = "lagtotalreserves")
+margin_eff2
+```
+
+```{r}
+plot(margin_eff2)
+```
+
+```{r}
+margin_eff3 <- ggpredict(m, term = "us3mtreasuryyield")
+margin_eff3
+```
+
+```{r}
+plot(margin_eff3)
+```
+
+```{r}
+margin_eff4 <- ggpredict(m, term = "laggdppercapita")
+margin_eff4
+```
+
+```{r}
+plot(margin_eff4)
+```
+
+
+```{r}
+margin_eff5 <- ggpredict(m, term = "polity2")
+margin_eff5
+```
+
+```{r}
+plot(margin_eff5)
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+m3 <- glmer(currencycrisis ~  externaldebtgni + polity2 + us3mtreasuryyield + (1|year) + (1|countryx), data = final_data, family = 'binomial')
+print(m3, corr = FALSE)
+summary(m3)
+```
+
+```{r}
+m4 <- glmer(currencycrisis ~  lagtotalreserves + externaldebtgni + (1|year) + (1|countryx), data = final_data, family = 'binomial')
+print(m4, corr = FALSE)
+summary(m4)
+```
+
+```{r}
+m5 <- glmer(currencycrisis ~  externaldebtgni + (1|year) + (1|countryx), data = final_data, family = 'binomial')
+print(m5, corr = FALSE)
+summary(m5)
+```
+
+
+### PART III. MACHINE LEARNING 
+
+## read the dataset
+```{r}
+getwd()
+```
+
+```{r}
+ml_data <- read.csv(file = "/Users/liuminchen/Documents/Currency Crisis/data_clean_for_next_steps.csv")
+```
+
+```{r}
+View(ml_data)
+```
+
+## Task 1. We split the data into a training and test dataset, partitioning data before 2014 into the training data, and holding out data in and after 2014 as a test set.
+```{r}
+install.packages("caret")
+```
+
+```{r}
+library(caret)
+library(dplyr)
+library(tidyverse)
+```
+
+```{r}
+test = ml_data %>% filter(year >= 2014)
+train = ml_data %>% filter(year < 2014)
+```
+
+```{r}
+View(test)
+```
+
+## step_knnimpute(all_predictors())%>% --- impute missing value
+
+```{r}
+library(recipes)
+```
+
+## convert factor into numeric
+```{r}
+train2 <- 
+  train %>% mutate_if(is.factor, as.numeric)
+head(train2)
+```
+
+```{r}
+test2 <- 
+  test %>% mutate_if(is.factor, as.numeric)
+```
+
+## normalize the scale
+```{r}
+rcp <-
+  recipe(countryx~.,train2) %>%
+  step_range(countryx, polity2,us3mtreasuryyield,laggdppercapita, lagtotalreserves, externaldebtgni) %>%  # Normalize scale
+  prep()
+# Apply the recipe to the training and test data
+train3 <- bake(rcp,train2)
+test3 <- bake(rcp,test2)
+View(test3)
+View(train3)
+```
+
+## keep variables we need for the ML model
+```{r}
+train4 <- train3[,c(4,8,9,10,11,12,13)]
+test4 <- test3[,c(4,8,9,10,11,12,13)]
+View(test4)
+View(train4)
+```
+
+## Task 4. Cross-Validation
+
+```{r}
+set.seed(1988) # set a seed for replication purposes 
+folds <- createFolds(train4$currencycrisis, k = 5) # Partition the data into 10 equal folds
+sapply(folds,length)
+```
+
+```{r}
+control_conditions <- 
+  trainControl(method='cv', # K-fold cross validation
+               summaryFunction = twoClassSummary, # Need this b/c it's a classification problem
+               classProbs = TRUE, # Need this b/c it's a classification problem
+               index = folds # The indices for our folds (so they are always the same)
+  )
+```
+
+
+
+
+## Task 5. Models
+# 1. KNN
+
+```{r}
+train4$currencycrisis <- factor(train4$currencycrisis)
+test4$currencycrisis <- factor(test4$currencycrisis)
+
+```
+
+```{r}
+levels(train4$currencycrisis) <- c("no", "yes")
+levels(test4$currencycrisis) <- c("no", "yes")
+```
+
+```{r}
+mod_knn <-
+  train(currencycrisis ~ ., # Equation (outcome and everything else)
+        data=train4, # Training data 
+        method = "knn", # K-Nearest Neighbors Algorithm
+        metric = "ROC", # area under the curve
+        trControl = control_conditions
+  )
+mod_knn
+```
+```{r}
+knn_tune = expand.grid(k = c(1,3,5,6,7,10))
+knn_tune
+```
+
+```{r}
+mod_knn2 <-
+  train(currencycrisis ~ ., 
+        data=train4,  
+        method = "knn", 
+        metric = "ROC", 
+        tuneGrid = knn_tune,
+        trControl = control_conditions
+)
+mod_knn2
+```
+
+
+```{r}
+# Draw out the best model (the one with the best performance)
+mod_knn2$finalModel
+```
+```{r}
+plot(mod_knn2)
+```
+
+#2. CART
+```{r}
+mod_cart <- 
+  train(currencycrisis ~ .,
+        data = train6,
+        method = "rpart",
+        metric = "ROC",
+        trControl = control_conditions
+  )
+mod_cart
+```
+
+```{r}
+plot(mod_cart)
+```
+```{r}
+install.packages("rattle") 
+```
+
+```{r}
+library(rattle)
+```
+
+```{r}
+fancyRpartPlot(mod_cart$finalModel)
+```
+
+```{r}
+print(mod_cart$finalModel)
+```
+
+
+```{r}
+tune_cart2 <- expand.grid(cp = c(0.0010281))
+mod_cart2 <- 
+  train(currencycrisis ~ .,
+        data = train4,
+        method = "rpart",
+        metric = "ROC",
+        tuneGrid = tune_cart2,
+        trControl = control_conditions
+  )
+mod_cart2
+```
+
+```{r}
+fancyRpartPlot(mod_cart2$finalModel)
+```
+
+#3. Random Forest
+
+```{r}
+install.packages('e1071')
+```
+
+```{r}
+library(e1071)
+```
+
+
+```{r}
+mod_rf <-
+  train(currencycrisis ~ .,
+        data=train4, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        trControl = control_conditions
+)
+```
+
+```{r}
+mod_rf
+```
+
+```{r}
+rf_tune <- expand.grid(mtry = c(1,3,5,6), splitrule=c("gini", "extratrees"),min.node.size=1)
+```
+
+
+```{r}
+mod2_rf <-
+  train(currencycrisis ~ .,
+        data=train4, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        tuneGrid = rf_tune,
+        trControl = control_conditions
+)
+```
+
+```{r}
+mod2_rf
+```
+
+## Task 6. Compare the output of all three models
+```{r}
+mod_list <-
+  list(
+    knn1 = mod_knn,
+    knn2 = mod_knn2,
+    cart1 = mod_cart,
+    cart2 = mod_cart2,
+    rf = mod_rf, 
+    rf2 = mod2_rf
+  )
+
+# Resamples allows us to compare model output
+resamples(mod_list)
+```
+
+## To Tingjie: print the following graph
+```{r}
+dotplot(resamples(mod_list))
+```
+
+## Task 7. Test the out-of-sample predictive performance for the best performing model, which is mod2_rf. 
+
+```{r}
+View(test4)
+```
+
+## Tingjie: use a table to visualize the predictive capability
+```{r}
+pred <- predict(mod2_rf,newdata = test4)
+confusionMatrix(table(pred,test4$currencycrisis))
+```
+
+
+## Task 8. For the Random Forest model, three most important variables are external debt to gni, lagged gdp per capita, and lagged total reserves.
+
+
+## To Tingjie: print the following graph
+```{r}
+plot(varImp(mod2_rf))
+```
+
+
+

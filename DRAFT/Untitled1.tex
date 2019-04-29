@@ -1,0 +1,216 @@
+\documentclass[12pt,]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={External Debt and Currency Crisis in Emerging Markets},
+            pdfauthor={New Group Project},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{External Debt and Currency Crisis in Emerging Markets}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{New Group Project}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{April 25, 2019}
+
+
+\begin{document}
+\maketitle
+
+\textbf{Members:}
+
+\begin{itemize}
+  \itemsep-.6em
+  \item Liumin Chen (NetID: lc1077) - email: lc1077@georgetown.edu\
+  \item Tingjie  Meng (NetID: tm1305) - email: tm1305@georgetown.edu\
+\end{itemize}
+
+\textbf{Github Repository:}
+\url{https://github.com/TingjieMeng/New-Group-Project}
+
+\section{Problem Statement}\label{problem-statement}
+
+Debts and credits are crucial both for the expansion of businesses and
+for economic development. However, when the growth of debts outpaces the
+growth of income, debts become a time bomb triggering crises. There are
+two types of debts: domestic debts denominated in the domestic currency
+and external debts denominated in foreign currencies. The history of
+financial crises tells us that countries with a high level of external
+debt are especially vulnerable to capital outflows and thus exchange
+rate fluctuations. As Ray Dalio describes in , such an event is called
+an inflationary depression.
+
+Classic examples of a deflationary depression are the Tukish currency
+crises in the early 2000s and 2018. Since the 1980s, Turkey has been
+heavily dependent on foreign investments to fund its huge current
+account deficits, especially in the capital-intensive construction
+sector. Thus its economy is fragile to any internal or external shock
+that can lead to foreign capital outflow on a large scale. In 2001,
+foreign investors quickly withdrew capital from Turkey amid political
+tensions and tightening fiscal policies by the Turkish government, which
+caused the value of Turkish lira to plunge. The history repeats itself.
+In 2018, due to domestic instability and tightening monetary policies
+from major central banks, Turkey saw a year-over-year decline of foreign
+investments by 9,500 basis points. Without sufficient foreign capital to
+support its weak economy, the Turkish lira soon began drastically losing
+value, leaving many companies unable to serve their foreign currency
+debts.
+
+Our project focuses on studying the link between external debt and
+currency crisis in Emerging Market Economies (EME). As shown in Turkey's
+crises, over-dependence on external financing can be extremely dangerous
+for EMEs in the long run. However, EMEs typically face difficulties in
+issuing debts in local currency because their local financial markets
+are underdeveloped. Thus they are more likely to hold a significant
+portion of external debt in the total debt portfolio compared to
+developed economies. Specifically, we explore factors that strengthen or
+weaken the link between external debt and currency crisis in EMEs and
+use the patterns we find to predict the possibility of a currency crisis
+happening in future years. Our findings can serve as policy guidance for
+external debt management for central bank policymakers in emerging
+markets.
+
+\section{Research Design}\label{research-design}
+
+\subsection{dataset}\label{dataset}
+
+A set of time series data covering 46 developing countries from 1995 to
+2015
+
+\subsection{data source}\label{data-source}
+
+Data sources for this study are as follows: the World Bank Open Data,
+the International Monetary Fund (IMF) Open Data, and the Polity IV
+Project conducted by the Center for Systemic Peace. All three data
+sources are publicly available. The World Bank and IMF APIs can be
+installed in R, and the Polity IV Project data can be conveniently
+downloaded as a csv package.
+
+\subsection{variable description}\label{variable-description}
+
+Dependent variable: possibility of a currency crisis happening, defined
+as a nominal depreciation of 15\% within a year Independent variable of
+interest: externaldebt/GNI Control variable: GDP per capita, level of
+democracy, US 3-month treasury yield, foreign reserves/total external
+debt
+
+\section{Methods}\label{methods}
+
+\subsection{data visualization}\label{data-visualization}
+
+Data visualization is used for getting a general understanding of the
+relationships between independent variables and dependent variables. It
+is also used as case studies of individual countries that experience a
+classic pattern of currency crises.
+
+\subsection{mixed-effect logit model}\label{mixed-effect-logit-model}
+
+The logit model in parameterization form is as follows:
+
+\begin{multline}
+  \operatorname{Pr}(\text{Currency Crisis} = 1 \mid \text{S, P, I})\\
+ = \frac{\exp(\beta_{0} + \beta_{1} \text{External debt to GNI} + \beta_{2} \text{Polity2} + \beta_{3} \text{US 3m yield} + \beta_{4} \text{lag GDP per capita} + \beta_{5} \text{lag reserves to external debt)} }{1 + \exp(\beta_{0} + \beta_{1} \text{External debt to GNI} + \beta_{2} \text{Polity2} + \beta_{3} \text{US 3m yield} + \beta_{4} \text{lag GDP per capita} + \beta_{5} \text{lag reserves to external debt)} \label{eq:glm1} 
+\end{multline}
+
+\subsection{machine learning
+techniques}\label{machine-learning-techniques}
+
+We use several models including K nearest neighbours, CART, and Random
+Forest. After comparison, we choose the one model specification with the
+best model fit.
+
+\section{Results}\label{results}
+
+\subsection{data visualization}\label{data-visualization-1}
+
+\ldots{}\ldots{} \#\# mixed-effect logit model \ldots{}\ldots{} \#\#
+machine learning techniques We use several models including K nearest
+neighbours, CART, and Random Forest. After comparison, we choose the one
+model specification with the best model fit.
+
+\section{Lessons Learned}\label{lessons-learned}
+
+\subsection{Data source}\label{data-source-1}
+
+\subsection{Missing value: on
+Argentina}\label{missing-value-on-argentina}
+
+\subsection{Coding issues}\label{coding-issues}
+
+Potentially more variables to include: economic structure, exchange rate
+regime, etc. Polity score: not the most ideal measure of political
+stability Using machine learning methods to increase prediction power
+
+
+\end{document}

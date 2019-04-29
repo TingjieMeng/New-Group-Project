@@ -1,0 +1,694 @@
+---
+title: "Machine Learning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## read the dataset
+```{r}
+getwd()
+```
+
+```{r}
+ml_data <- read.csv(file = "WDI_POLITY_USTREASURY_3.csv")
+```
+
+```{r}
+head(ml_data)
+```
+
+## Task 1. We split the data into a training and test dataset, partitioning 75% of the data into the training data, and holding out 25% of the data as a test set.
+```{r}
+install.packages("caret")
+```
+```{r}
+library(caret)
+library(dplyr)
+library(tidyverse)
+```
+
+
+
+```{r}
+index = createDataPartition(ml_data$currencycrisis,p=.75,list=F) 
+train_data = ml_data[index,] # Use 75% of the data as training data 
+test_data = ml_data[-index,] # holdout 25% as test data 
+dim(train_data)
+dim(test_data) 
+```
+
+## Task 2. Examine the variables. We have 5 categorical variables and 9 continuous variables.There are missing values in categorical variables including Home, Job and Maritual, and in continuous variables including Assets, Debt and Income. 
+## Among the continuous variables, there is right skewness in seniority. There appears to be some outliners who have over forty years of work experience. There is good distribution on the job variable. The scales for Amount, Asset, Debt, Income, and Price have to be adjusted.
+## Among the categoric variables, the outcome Status is not balanced, as the volume of good status is more than twice the volume of bad status.There is large representation of people who are divorced, people who have fixed jobs, and people with no credit records. There is good variation on different types of home ownership. 
+
+```{r}
+install.packages("skimr")
+```
+
+```{r}
+library(skimr)
+```
+
+```{r}
+skimr::skim(train_data)
+```
+
+## Visualize the distribution for each variable. First, let’s look at the numeric variables.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+train_data %>% 
+  select_if(is.integer) %>% 
+  gather(var,val) %>% 
+  ggplot(aes(val)) +
+  geom_bar(bins = 75) +
+  scale_y_log10() +
+  facet_wrap(~var,scales="free",ncol=5) +
+  coord_flip()
+```
+
+##Then, we look at distribution of the categorical variables.
+```{r}
+train_data %>% 
+  select_if(is.factor) %>% 
+  gather(var,val) %>% 
+  ggplot(aes(val)) +
+  geom_bar(bins = 75) +
+  facet_wrap(~var,scales="free",ncol=3) 
+```
+
+
+## Task 3. Reprocessing Data. All missing values are imputed, all categorical variables are converted to dummies, and all ranges for the continuous variable are normalized and/or standardized.
+
+```{r}
+install.packages("recipes")
+```
+
+```{r}
+library(recipes)
+```
+
+```{r}
+rcp <-
+  recipe(countryx~.,train_data) %>%
+  step_range(polity2,us3mtreasuryyield,laggdppercapita, lagtotalreserves, externaldebtgni) %>%  # Normalize scale
+  step_knnimpute(all_predictors())%>%
+  prep()
+# Apply the recipe to the training and test data
+train_data2 <- bake(rcp,train_data)
+test_data2 <- bake(rcp,test_data)
+View(train_data2)
+```
+
+```{r}
+skimr::skim(train_data3)
+```
+```{r}
+require(tidyr)
+require(dplyr)
+require(ggplot2)
+```
+
+
+```{r}
+train_data2 %>%
+  select(externaldebtgni,laggdppercapita) %>%
+  gather(var,val) %>%
+  ggplot(aes(val)) +
+  geom_histogram(bins = 75) +
+  facet_wrap(~var,scales="free",ncol=1)
+```
+
+```{r}
+skimr::skim(train_data3)
+```
+
+
+## Task 4. Cross-Validation
+
+```{r}
+library(caret)
+```
+
+```{r}
+set.seed(1988) # set a seed for replication purposes 
+folds <- createFolds(train_data3$currencycrisis, k = 5) # Partition the data into 10 equal folds
+sapply(folds,length)
+```
+
+```{r}
+control_conditions <- 
+  trainControl(method='cv', # K-fold cross validation
+               summaryFunction = twoClassSummary, # Need this b/c it's a classification problem
+               classProbs = TRUE, # Need this b/c it's a classification problem
+               index = folds # The indices for our folds (so they are always the same)
+  )
+```
+
+## Task 5. Models
+# 1. KNN
+
+```{r}
+train_data3 <- train_data2[,c(8,9,10,11,12,13)]
+```
+
+
+```{r}
+train_data3$currencycrisis <- factor(train_data3$currencycrisis)
+```
+
+```{r}
+levels(train_data3$currencycrisis) <- c("no", "yes")
+```
+
+```{r}
+View(train_data3)
+```
+
+```{r}
+mod_knn <-
+  train(currencycrisis ~ ., # Equation (outcome and everything else)
+        data=train_data3, # Training data 
+        method = "knn", # K-Nearest Neighbors Algorithm
+        metric = "ROC", # area under the curve
+        trControl = control_conditions
+  )
+mod_knn
+```
+```{r}
+knn_tune = expand.grid(k = c(1,3,5,10))
+knn_tune
+```
+
+```{r}
+mod_knn2 <-
+  train(currencycrisis ~ ., 
+        data=train_data3,  
+        method = "knn", 
+        metric = "ROC", 
+        tuneGrid = knn_tune,
+        trControl = control_conditions
+)
+mod_knn2
+```
+
+
+```{r}
+# Draw out the best model (the one with the best performance)
+mod_knn2$finalModel
+```
+
+```{r}
+plot(mod_knn2)
+```
+
+#2. CART
+```{r}
+mod_cart <- 
+  train(currencycrisis ~ .,
+        data = train_data3,
+        method = "rpart",
+        metric = "ROC",
+        trControl = control_conditions
+  )
+mod_cart
+```
+
+```{r}
+plot(mod_cart)
+```
+```{r}
+install.packages("rattle") 
+```
+
+```{r}
+library(rattle)
+```
+
+```{r}
+fancyRpartPlot(mod_cart$finalModel)
+```
+
+```{r}
+print(mod_cart$finalModel)
+```
+
+
+```{r}
+tune_cart2 <- expand.grid(cp = c(0.0010281))
+mod_cart2 <- 
+  train(currencycrisis ~ .,
+        data = train_data3,
+        method = "rpart",
+        metric = "ROC",
+        tuneGrid = tune_cart2,
+        trControl = control_conditions
+  )
+mod_cart2
+```
+
+```{r}
+fancyRpartPlot(mod_cart2$finalModel)
+```
+
+#3. Random Forest
+
+```{r}
+install.packages('e1071')
+```
+
+```{r}
+library(e1071)
+```
+
+
+```{r}
+mod_rf <-
+  train(currencycrisis ~ .,
+        data=train_data3, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        trControl = control_conditions
+)
+```
+
+```{r}
+mod_rf
+```
+
+```{r}
+rf_tune <- expand.grid(mtry = c(1,3,5,10), splitrule=c("gini", "extratrees"),min.node.size=1)
+```
+
+
+```{r}
+mod2_rf <-
+  train(currencycrisis ~ .,
+        data=train_data3, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        tuneGrid = rf_tune,
+        trControl = control_conditions
+)
+```
+
+```{r}
+mod2_rf
+```
+
+## Task 6. Compare the output of all three models
+```{r}
+mod_list <-
+  list(
+    knn1 = mod_knn,
+    knn2 = mod_knn2,
+    cart1 = mod_cart,
+    cart2 = mod_cart2,
+    rf = mod_rf, 
+    rf2 = mod2_rf
+  )
+
+# Resamples allows us to compare model output
+resamples(mod_list)
+```
+
+```{r}
+dotplot(resamples(mod_list))
+```
+
+## Task 7. Test the out-of-sample predictive performance for the best performing model, which is mod2_rf. 
+
+```{r}
+pred <- predict(mod2_rf,newdata = test_data3)
+confusionMatrix(table(pred,test_data3$currencycrisis))
+```
+
+
+## Task 8. For the Random Forest model, three most important variables are Seniority, Income and Amount.
+
+```{r}
+plot(varImp(mod2_rf))
+```
+
+# Plot partial dependency plots for the top three most important variable and try to interpret them.
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+install.packages("gridExtra")
+```
+
+```{r}
+library(gridExtra)
+```
+```{r}
+library(dplyr)
+```
+
+```{r}
+grid.arrange(
+  partial(mod2_rf,pred.var = "polity2",plot = T),
+  partial(mod2_rf,pred.var = "us3mtreasuryyield",plot = T),
+  partial(mod2_rf,pred.var = "laggdppercapita", plot = T),
+  partial(mod2_rf,pred.var = "lagtotalreserves", plot = T),
+  partial(mod2_rf,pred.var = "externaldebtgni", plot = T)
+)
+
+pdp_imp_vars <- partial(mod2_rf,pred.var = c("polity2","us3mtreasuryyield","laggdppercapita","lagtotalreserves","externaldebtgni"))
+pdp_imp_vars 
+pdp_imp_vars %>% 
+  ggplot(aes(factor(polity2),factor(us3mtreasuryyield),factor(laggdppercapita),factor(lagtotalreserves),factor(externaldebtgni),fill=yhat)) +
+  geom_tile() +
+  scale_fill_viridis_c()
+```
+## new ML
+```{r}
+ml_data <- read.csv(file = "WDI_POLITY_USTREASURY_3.csv")
+```
+
+```{r}
+test = ml_data %>% filter(year >= 2014)
+train = ml_data %>% filter(year < 2014)
+```
+
+```{r}
+View(test)
+```
+
+## step_knnimpute(all_predictors())%>% --- impute missing value
+
+```{r}
+library(recipes)
+```
+
+## normalize the scale
+```{r}
+rcp <-
+  recipe(countryx~.,train) %>%
+  step_range(polity2,us3mtreasuryyield,laggdppercapita, lagtotalreserves, externaldebtgni) %>%  # Normalize scale
+  prep()
+# Apply the recipe to the training and test data
+train2 <- bake(rcp,train)
+test2 <- bake(rcp,test)
+View(train2)
+```
+
+##convert dummy to norminal
+```{r}
+rcp <-
+  recipe(countryx~.,train2) %>%
+  step_dummy(all_nominal(),-all_outcomes()) %>%
+  prep()
+# Apply the recipe to the training and test data
+train3 <- bake(rcp,train2)
+test3 <- bake(rcp,test2)
+View(train3)
+```
+
+```{r}
+train4 <- 
+  train2 %>% mutate_if(is.factor, as.numeric)
+View(train4)
+```
+
+```{r}
+test4 <- 
+  test2 %>% mutate_if(is.factor, as.numeric)
+View(test4)
+```
+
+## Task 4. Cross-Validation
+
+```{r}
+library(caret)
+```
+
+```{r}
+set.seed(1988) # set a seed for replication purposes 
+folds <- createFolds(train4$currencycrisis, k = 5) # Partition the data into 10 equal folds
+sapply(folds,length)
+```
+
+```{r}
+control_conditions <- 
+  trainControl(method='cv', # K-fold cross validation
+               summaryFunction = twoClassSummary, # Need this b/c it's a classification problem
+               classProbs = TRUE, # Need this b/c it's a classification problem
+               index = folds # The indices for our folds (so they are always the same)
+  )
+```
+
+## Task 5. Models
+# 1. KNN
+
+
+```{r}
+train5 <- train4[,c(4, 8,9,10,11,12,13)]
+test5 <- test4[,c(4, 8,9,10,11,12,13)]
+head(train5)
+```
+
+```{r}
+rcp <-
+  recipe(countryx~.,train5) %>%
+  step_range(countryx,polity2,us3mtreasuryyield,laggdppercapita, lagtotalreserves, externaldebtgni) %>%  # Normalize scale
+  prep()
+# Apply the recipe to the training and test data
+train6 <- bake(rcp,train5)
+test6 <- bake(rcp,test5)
+View(train6)
+```
+
+
+
+```{r}
+train6$currencycrisis <- factor(train6$currencycrisis)
+test6$currencycrisis <- factor(test6$currencycrisis)
+
+```
+
+```{r}
+levels(train6$currencycrisis) <- c("no", "yes")
+levels(test6$currencycrisis) <- c("no", "yes")
+
+```
+
+```{r}
+View(train6)
+View(test6)
+
+```
+
+```{r}
+mod_knn <-
+  train(currencycrisis ~ ., # Equation (outcome and everything else)
+        data=train6, # Training data 
+        method = "knn", # K-Nearest Neighbors Algorithm
+        metric = "ROC", # area under the curve
+        trControl = control_conditions
+  )
+mod_knn
+```
+```{r}
+knn_tune = expand.grid(k = c(1,3,5,6,10))
+knn_tune
+```
+
+```{r}
+mod_knn2 <-
+  train(currencycrisis ~ ., 
+        data=train6,  
+        method = "knn", 
+        metric = "ROC", 
+        tuneGrid = knn_tune,
+        trControl = control_conditions
+)
+mod_knn2
+```
+
+
+```{r}
+# Draw out the best model (the one with the best performance)
+mod_knn2$finalModel
+```
+```{r}
+plot(mod_knn2)
+```
+
+#2. CART
+```{r}
+mod_cart <- 
+  train(currencycrisis ~ .,
+        data = train6,
+        method = "rpart",
+        metric = "ROC",
+        trControl = control_conditions
+  )
+mod_cart
+```
+
+```{r}
+plot(mod_cart)
+```
+```{r}
+install.packages("rattle") 
+```
+
+```{r}
+library(rattle)
+```
+
+```{r}
+fancyRpartPlot(mod_cart$finalModel)
+```
+
+```{r}
+print(mod_cart$finalModel)
+```
+
+
+```{r}
+tune_cart2 <- expand.grid(cp = c(0.0010281))
+mod_cart2 <- 
+  train(currencycrisis ~ .,
+        data = train6,
+        method = "rpart",
+        metric = "ROC",
+        tuneGrid = tune_cart2,
+        trControl = control_conditions
+  )
+mod_cart2
+```
+
+```{r}
+fancyRpartPlot(mod_cart2$finalModel)
+```
+
+#3. Random Forest
+
+```{r}
+install.packages('e1071')
+```
+
+```{r}
+library(e1071)
+```
+
+
+```{r}
+mod_rf <-
+  train(currencycrisis ~ .,
+        data=train6, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        trControl = control_conditions
+)
+```
+
+```{r}
+mod_rf
+```
+
+```{r}
+rf_tune <- expand.grid(mtry = c(1,3,5,10), splitrule=c("gini", "extratrees"),min.node.size=1)
+```
+
+
+```{r}
+mod2_rf <-
+  train(currencycrisis ~ .,
+        data=train6, # Training data
+        method = "ranger", # random forest (ranger is much faster than rf)
+        metric = "ROC", # area under the curve
+        importance = 'impurity', # For variable importance metric (see below)
+        tuneGrid = rf_tune,
+        trControl = control_conditions
+)
+```
+
+```{r}
+mod2_rf
+```
+
+## Task 6. Compare the output of all three models
+```{r}
+mod_list <-
+  list(
+    knn1 = mod_knn,
+    knn2 = mod_knn2,
+    cart1 = mod_cart,
+    cart2 = mod_cart2,
+    rf = mod_rf, 
+    rf2 = mod2_rf
+  )
+
+# Resamples allows us to compare model output
+resamples(mod_list)
+```
+
+```{r}
+dotplot(resamples(mod_list))
+```
+
+## Task 7. Test the out-of-sample predictive performance for the best performing model, which is mod2_rf. 
+
+```{r}
+View(test6)
+```
+
+```{r}
+pred <- predict(mod2_rf,newdata = test6)
+confusionMatrix(table(pred,test6$currencycrisis))
+```
+
+
+## Task 8. For the Random Forest model, three most important variables are Seniority, Income and Amount.
+
+```{r}
+plot(varImp(mod2_rf))
+```
+
+# Plot partial dependency plots for the top three most important variable and try to interpret them.
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+install.packages("gridExtra")
+```
+
+```{r}
+library(gridExtra)
+```
+```{r}
+library(dplyr)
+```
+
+```{r}
+grid.arrange(
+  partial(mod2_rf,pred.var = "polity2",plot = T),
+  partial(mod2_rf,pred.var = "us3mtreasuryyield",plot = T),
+  partial(mod2_rf,pred.var = "laggdppercapita", plot = T),
+  partial(mod2_rf,pred.var = "lagtotalreserves", plot = T),
+  partial(mod2_rf,pred.var = "externaldebtgni", plot = T)
+)
+
+pdp_imp_vars <- partial(mod2_rf,pred.var = c("polity2","us3mtreasuryyield","laggdppercapita","lagtotalreserves","externaldebtgni"))
+pdp_imp_vars 
+pdp_imp_vars %>% 
+  ggplot(aes(factor(polity2),factor(us3mtreasuryyield),factor(laggdppercapita),factor(lagtotalreserves),factor(externaldebtgni),fill=yhat)) +
+  geom_tile() +
+  scale_fill_viridis_c()
+```

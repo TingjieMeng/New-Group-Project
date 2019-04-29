@@ -1,0 +1,168 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+require(skimr)
+```
+
+```{r}
+require(readr)
+require(tidyverse)
+require(ggplot2)
+require(dplyr)
+```
+
+
+```{r}
+df <- read.csv('C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/data_clean_for_next_steps.csv')
+```
+
+```{r}
+head(df)
+
+```
+
+
+summary of statistics:
+describe the variables
+```{r}
+skimr::skim(df)
+```
+
+```{r}
+
+```
+
+#creat df1 to select only China, Argentina, Brazil, Romania, Russia Federation, Sierra Leone, Thailand, Turkey and South Africa
+df1 is used to create graph1
+```{r}
+df1 <- df%>%
+  filter(countryx=="China"|countryx=="Brazil"|countryx=="Romania"|countryx=="Russian Federation"|countryx=="Sierra Leone"|countryx=="Thailand"|countryx=="Turkey"|countryx=="South Africa"|countryx=="Nigeria"|countryx=="Zambia"|countryx=='Ukraine')
+```
+
+```{r}
+df1$currencycrisis <- factor(df1$currencycrisis)
+```
+
+
+
+```{r}
+ggplot(df1,aes(year,externaldebtgni))+
+  geom_line()+
+  ylab("external debt/gni")+
+  facet_wrap(~countryx)
+```
+#graph 1
+main relationship:
+Argentuna,Thailand,Sierra Leoone: similar pattern
+#some countries have similar patterns
+```{r}
+p <- ggplot(df1,aes(year,externaldebtgni))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("external debt/gni")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)
+  
+p
+                
+                        
+```
+#graph 2
+multicollinearity:
+see the relationship between control variable: polity score and gdp per capita
+```{r}
+q1 <- ggplot(df1,aes(year,polity2))+
+  geom_line()+
+  ylab("polity score")+
+  facet_wrap(~countryx)
+q1
+```
+
+```{r}
+q2 <- ggplot(df1,aes(year,laggdppercapita,color="red"))+
+  geom_line()+
+  facet_wrap(~countryx)
+q2
+
+```
+
+multicolinear?
+it make sense: Nigeria, Romania -> The more "democratic", the higher lagged gdp per capita
+not make sense: China, Brazil,Russia, Ukraine, Sierra Leone, South Africa, Thailand, Turkey
+#some relationship found
+```{r}
+ggplot(df1,aes(x=year))+
+  geom_line(aes(year,laggdppercapita),color="steel blue")+
+  geom_line(aes(year,(polity2+10)*500),color="dark red")+
+  scale_y_continuous(name="lagged gdp per capita", sec.axis=sec_axis(~./500-10, name="polity score"))+
+  theme(axis.title.y.left=element_text(color="steel blue"),
+    axis.text.y.left=element_text(color="steel blue"),
+    axis.title.y.right=element_text(color="dark red"),
+    axis.text.y.right=element_text(color="dark red"))+
+  facet_wrap(~countryx)
+```
+#graph 3
+external shock
+
+```{r}
+ df2 <- df%>%
+  filter(currencycrisis==1)
+```
+
+```{r}
+ggplot(df2,aes(x=year))+
+geom_bar(mapping = aes(x = year, y = currencycrisis), stat = "identity") 
+```
+
+```{r}
+ggplot(df2,aes(x=year))+
+  geom_line(aes(year,us3mtreasuryyield))+
+  ylab("US Interest Rate")
+```
+The trends of US interest rate and # of countries undergoing currency crisis appear to move in the same direction approximately. 
+US interest rate as an external shock has an impact on EMEs' currency crisis.
+#relationship found
+```{r}
+ggplot(df2,aes(x=year))+
+  geom_line(aes(year,us3mtreasuryyield*2.5),color="dark red")+
+  geom_bar(mapping = aes(x = year, y = currencycrisis), stat = "identity",fill="steel blue",alpha=0.4)+
+  scale_y_continuous(name="# of countries with currency crisis", sec.axis=sec_axis(~./2.5, name="US interest rate"))+
+  theme(axis.title.y.left=element_text(color="steel blue"),
+    axis.text.y.left=element_text(color="steel blue"),
+    axis.title.y.right=element_text(color="dark red"),
+    axis.text.y.right=element_text(color="dark red"))
+```
+#graph 4
+polity score and currency crisis by country: no direct relationship found
+```{r}
+ ggplot(df1,aes(year,polity2))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("polity score")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)
+
+```
+#graph 5
+The lower the foreign reserves, the more currency crisis happened.
+strong relationship!!
+```{r}
+ ggplot(df1,aes(year,totalreservesoutoftotalexternald))+
+  geom_line()+
+  geom_point(aes(year,color=currencycrisis))+
+  ylab("total foreign reserves out of total external debt")+
+  scale_color_manual(values=c("black","red"))+
+  facet_wrap(~countryx)
+```
+
+
+
+
+
