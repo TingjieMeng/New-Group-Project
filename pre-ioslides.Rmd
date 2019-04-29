@@ -32,7 +32,7 @@ library(e1071)
 ```
 
 
-
+#Problem statement and Background 
 
 ## Problem statement and Background 
 
@@ -40,18 +40,20 @@ Frequent currency crisis in EMEs: Why so vulnerable?
 
 - a high level of external debt 
 - external shocks
-- politycial instability 
+- politicial instability 
 - GDP level
 
 ## Problem statement and Background 
 
 - What factors strengthen or weaken the link between external debt and currency crisis in EMEs?
 - How to predict the possibility of a currency crisis happening in the future?
-- Policy guidance for central bank policymakers in emerging markets?
+- Policy guidance for central bank policymakers in emerging markets
 
 Testable hypothesis:
 
 - EMEs with high external debt are more prone to currency crisis risks
+
+#Approach
 
 ## Approach 
 
@@ -60,7 +62,7 @@ Variables:
 - Dependent variable: 
 possibility of currency crisis (a nominal depreciation of 15% within a year)
 - Independent variable: 
-externaldebt/GNI
+external debt/GNI
 - Control variable: 
 GDP per capita, level of democracy, US 3-month treasury yield, foreign reserves/total external debt
 
@@ -70,6 +72,7 @@ Data access:
 - the International Monetary Fund (IMF) Open Data
 - the Polity IV Project conducted by the Center for Systemic Peace
 
+#Methods
 
 ## Methods 
 
@@ -81,13 +84,15 @@ Data visualizations
 Logit model  
 
 - Model the probability of a currency crisis happening given all variables
-- $$Pr(Currency Crisis = 1) = φ(β0 + β1(External debt to GNI)i,t + β2(Polity2)i,t + β3(US 3m yield)i + β4(lag GDP per capita)i,t + β5(lag reserves to external debt)i,t + yeari + countryt + εi,t)$$
+- (external debt/GNI; GDP per capita, level of democracy, US 3-month treasury yield, foreign reserves/total external debt)
 
 
 Machine learning 
 
 - Predict the classification
 - Several models (K nearest neighbours, CART, and Random Forest)
+
+#Result
 
 ## Result:  data visualizations
 
@@ -111,16 +116,21 @@ ggplot(df1,aes(year,externaldebtgni))+
   geom_line()+
   geom_point(aes(year,color=currencycrisis))+
   ylab("external debt/gni")+
-  scale_color_manual(values=c("black","red"))+
   facet_wrap(~countryx)+
   theme(legend.position = "bottom")+
   labs(x="year",
-       y="external debt/GNI",
+       y="external debt / GNI",
        fill="",
-       title="Higher external debt, More currency crisis?") +
+       title='Higher external debt, More currency crisis?',
+subtitle="yes for Sierra Leone, Russia, Thailand",
+       caption="Source: IMF, the World Bank") +
   theme(legend.position = "bottom",
         plot.title = element_text(hjust=.5),
-        plot.subtitle = element_text(hjust=.5))
+        plot.subtitle = element_text(hjust=.5))+
+  scale_color_manual(name="currency crisis",
+                         breaks=c("0", "1"),
+                         labels=c("no currency crisis", 'currency crisis'),
+                       values=c("black","red"))
 
 ```
 
@@ -148,20 +158,23 @@ figure2 <- ggplot(df2,aes(x=year))+
 
 ```
 
+
 ```{r}
 figure3 <- ggplot(df1,aes(year,totalreservesoutoftotalexternald))+
   geom_line()+
   geom_point(aes(year,color=currencycrisis))+
   ylab("total foreign reserves out of total external debt")+
-  scale_color_manual(values=c("black","red"))+
-  labs(title="Lower foreign reserves, more currenct crisis") +
+  labs(title="Lower foreign reserves, more currency crisis?",
+       subtitle="yes for China, Thailand") +
   theme(legend.position = 'bottom',
         plot.title = element_text(hjust=.5),
         plot.subtitle = element_text(hjust=.5))+
   scale_x_continuous(limits=c(1990,2015), breaks=seq(1990,2015,10))+
-  facet_wrap(~countryx)
-  
-
+  facet_wrap(~countryx)+ 
+  scale_color_manual(name="currency crisis",
+                         breaks=c("0", "1"),
+                         labels=c("no currency crisis", 'currency crisis'),
+                       values=c("black","red"))
 ```
 
 ```{r,include=TRUE,fig.align="center",fig.height=5,fig.width=8.5}
@@ -169,13 +182,20 @@ figure3 <- ggplot(df1,aes(year,totalreservesoutoftotalexternald))+
 p <- ggarrange(figure2,figure3,nrow=1,ncol=2)
 p
 
-
 ```
 
 
 
 
 ## Result:  Logit model
+
+a positive correlation between independent variable of interest and the dependent variable, statistically significant at the 0.1% level. 
+
+This supports our main hypothesis that countries who have borrowed excessively in foreign currency are more prone to currency crisis risks. 
+
+a negative correlation between the ratio of foreign reserves to a country’s total external debt in the previous year and the dependent variable
+
+also a negative correlation between GDP per capita in the previous year and the probability of a currency crisis happening
 
 ```{r}
 final_data <- read.csv('data_clean_for_next_steps.csv')
@@ -198,9 +218,8 @@ table1
 
 
 
-```{r,include=FALSE}
-#! [] (/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/logit.jpg)
-```
+---
+
 
 ```{r, include=TRUE, cache=TRUE, fig.align="center",fig.width=5,fig.height=5}
 knitr::include_graphics("C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/logit.jpg")
@@ -498,7 +517,6 @@ confusionMatrix(table(pred,test4$currencycrisis))
 
 ```{r, include=TRUE, cache=TRUE, fig.align="center",fig.width=7,fig.height=7}
 knitr::include_graphics("C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/graphs/confusion matrix.jpg")
-
 ```
 
 
@@ -509,6 +527,8 @@ knitr::include_graphics("C:/Users/Meng/Desktop/Spring2019/DataScience/group proj
 rf2var <- plot(varImp(mod2_rf),main="Importance of control variables")
 rf2var
 ```
+
+#Conclusion
 
 ## Lessons learned
 
