@@ -92,7 +92,7 @@ Machine learning
 ## Result:  data visualizations
 
 ```{r,include=FALSE}
-df <- read.csv('C:/Users/Meng/Desktop/Spring2019/DataScience/group project/new project/New-Group-Project/data_clean_for_next_steps.csv')
+df <- read.csv('data_clean_for_next_steps.csv')
 
 ```
 
@@ -176,6 +176,14 @@ p
 
 
 ## Result:  Logit model
+
+a positive correlation between independent variable of interest and the dependent variable, statistically significant at the 0.1% level. 
+
+This supports our main hypothesis that countries who have borrowed excessively in foreign currency are more prone to currency crisis risks. 
+
+a negative correlation between the ratio of foreign reserves to a country’s total external debt in the previous year and the dependent variable
+
+also a negative correlation between GDP per capita in the previous year and the probability of a currency crisis happening
 
 ```{r}
 final_data <- read.csv('data_clean_for_next_steps.csv')
